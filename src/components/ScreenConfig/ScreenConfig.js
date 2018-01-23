@@ -8,7 +8,7 @@ function ScreenConfig(props) {
         return props.shapes[shapeId].isCompleted;
     }).map(shapeId => {
         return (
-            <div key={shapeId} className='shape-config-wrapper'>
+            <div key={shapeId} className={'shape-config-wrapper' + (props.shapes[shapeId].isSelected ? ' active' : '')}>
                 <label>Shape fill color</label>
                 <input type='color' value={props.shapes[shapeId].fillColor} onChange={ev => props.fillShapeHandler(shapeId, ev.target.value)} />
             </div>

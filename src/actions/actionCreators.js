@@ -1,7 +1,9 @@
 import {
     CREATE_SCREEN,
     CREATE_POINT,
-    FILL_SHAPE
+    FILL_SHAPE,
+    SELECT_SHAPE,
+    DESELECT_SHAPE
 } from './actions';
 
 export function createScreen() {
@@ -26,5 +28,19 @@ export function fillShape(shapeId, fillColor) {
         shapeConfig: {
             fillColor: fillColor
         }
+    }
+}
+
+export function selectShape(shapeId) {
+    return {
+        type: SELECT_SHAPE,
+        shapeId
+    }
+}
+
+export function deselectShape(shapeId) {
+    return {
+        type: DESELECT_SHAPE,
+        shapeId
     }
 }

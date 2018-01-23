@@ -2,12 +2,14 @@ import {
     CREATE_SCREEN,
     CREATE_POINT,
     FILL_SHAPE,
-    LINE_STYLE
+    SELECT_SHAPE,
+    DESELECT_SHAPE
 } from '../actions/actions';
 
 export default function reducer(state = [], action) {
     let updateState = null;
     let updateShapes = null;
+    let updateShape = null;
 
     switch (action.type) {
         case CREATE_SCREEN:
@@ -35,55 +37,133 @@ export default function reducer(state = [], action) {
             updateState = { ...state };
             updateShapes = { ...updateState.shapes };
 
-            let lastShapeId = Object.keys(updateShapes).reduce((previousShapeId, currentShapeId) => {
+            let latestAddedShapeId = Object.keys(updateShapes).reduce((previousShapeId, currentShapeId) => {
                 return Math.max(previousShapeId, currentShapeId);
             }, 0);
 
-            lastShapeId = Number.parseInt(lastShapeId, 10);
+            let latestAddedShapeIdForActiveScreen = Object.keys(updateShapes).filter(shapeId => {
+                return updateShapes[shapeId].screenId === action.screenId;
+            }).reduce((previousShapeId, currentShapeId) => {
+                return Math.max(previousShapeId, currentShapeId);
+            }, 0);
 
-            const doesShapeExists = updateShapes.hasOwnProperty(lastShapeId) ? true : false;
-            let closeShape = false;
-            if (doesShapeExists && Object.keys(action.circleCoordinate).length > 0) {
-                const isXequal = action.circleCoordinate.x === updateShapes[lastShapeId].points[0].x ? true : false;
-                const isYequal = action.circleCoordinate.y === updateShapes[lastShapeId].points[0].y ? true : false;
-                closeShape = isXequal && isYequal;
+            latestAddedShapeId = Number.parseInt(latestAddedShapeId, 10);
+            latestAddedShapeIdForActiveScreen = Number.parseInt(latestAddedShapeIdForActiveScreen, 10);
+            const differentScreen = (function () {
+                if (latestAddedShapeId === 0) {
+                    return false;
+                }
+
+                return action.screenId !== updateShapes[latestAddedShapeId].screenId;
+            })();
+
+            let firstPointOfShapeIsClicked = false;
+            if (Object.keys(action.circleCoordinate).length > 0) {
+                const isXequal = action.circleCoordinate.x === updateShapes[latestAddedShapeIdForActiveScreen].points[0].x ? true : false;
+                const isYequal = action.circleCoordinate.y === updateShapes[latestAddedShapeIdForActiveScreen].points[0].y ? true : false;
+                firstPointOfShapeIsClicked = isXequal && isYequal;
             }
 
-            let previousClose = false;
-            if (doesShapeExists &&
-                updateShapes[lastShapeId].points.length > 2 &&
-                updateShapes[lastShapeId].points[0].x === updateShapes[lastShapeId].points[updateShapes[lastShapeId].points.length - 1].x &&
-                updateShapes[lastShapeId].points[0].y === updateShapes[lastShapeId].points[updateShapes[lastShapeId].points.length - 1].y) {
-                previousClose = true;
-            }
-
-            if (!doesShapeExists || previousClose) {
-                updateShapes[lastShapeId + 1] = {
-                    shapeId: lastShapeId + 1,
+            if (latestAddedShapeId === 0) {
+                updateShapes[latestAddedShapeId + 1] = {
+                    shapeId: latestAddedShapeId + 1,
                     screenId: action.screenId,
                     points: [],
                     isCompleted: false,
+                    isSelected: false,
                     fillColor: 'none'
                 };
-                updateShapes[lastShapeId + 1].points.push(action.coordinates);
+
+                updateShapes[latestAddedShapeId + 1].points.push(action.coordinates);
+            } else if (differentScreen) {
+                if (updateShapes[latestAddedShapeIdForActiveScreen] && updateShapes[latestAddedShapeIdForActiveScreen].isCompleted) {
+                    updateShapes[latestAddedShapeId + 1] = {
+                        shapeId: latestAddedShapeId + 1,
+                        screenId: action.screenId,
+                        points: [],
+                        isCompleted: false,
+                        isSelected: false,
+                        fillColor: 'none'
+                    };
+
+                    updateShapes[latestAddedShapeId + 1].points.push(action.coordinates);
+                } else if (updateShapes[latestAddedShapeIdForActiveScreen] && !updateShapes[latestAddedShapeIdForActiveScreen].isCompleted) {
+                    updateShapes[latestAddedShapeIdForActiveScreen].points.push(action.coordinates);
+                } else {
+                    updateShapes[latestAddedShapeId + 1] = {
+                        shapeId: latestAddedShapeId + 1,
+                        screenId: action.screenId,
+                        points: [],
+                        isCompleted: false,
+                        isSelected: false,
+                        fillColor: 'none'
+                    };
+
+                    updateShapes[latestAddedShapeId + 1].points.push(action.coordinates);
+                }
+            } else if (updateShapes[latestAddedShapeIdForActiveScreen].isCompleted) {
+                updateShapes[latestAddedShapeId + 1] = {
+                    shapeId: latestAddedShapeId + 1,
+                    screenId: action.screenId,
+                    points: [],
+                    isCompleted: false,
+                    isSelected: false,
+                    fillColor: 'none'
+                };
+
+                updateShapes[latestAddedShapeId + 1].points.push(action.coordinates);
+            } else if (firstPointOfShapeIsClicked) {
+                updateShapes[latestAddedShapeIdForActiveScreen].points.push(action.circleCoordinate);
+            } else {
+                updateShapes[latestAddedShapeIdForActiveScreen].points.push(action.coordinates);
             }
 
-            if (doesShapeExists && !previousClose && !closeShape) {
-                updateShapes[lastShapeId].points.push(action.coordinates);
-            }
-
-            if (!previousClose && closeShape) {
-                updateShapes[lastShapeId].fillColor = '#CCC';
-                updateShapes[lastShapeId].isCompleted = true;
-                updateShapes[lastShapeId].points.push(action.circleCoordinate);
+            if (firstPointOfShapeIsClicked) {
+                updateShapes[latestAddedShapeIdForActiveScreen].fillColor = '#CCCCCC';
+                updateShapes[latestAddedShapeIdForActiveScreen].isCompleted = true;
             }
 
             updateState.shapes = updateShapes;
             return updateState;
 
+        case SELECT_SHAPE:
+            updateState = { ...state };
+
+            const selectedShape = Object.keys(updateState.shapes).filter(shapeId => {
+                return updateState.shapes[shapeId].isSelected;
+            });
+
+            if (selectedShape === action.shapeId) {
+                return state;
+            }
+
+            const updateSelectedShape = { ...updateState.shapes[selectedShape] }
+            updateShape = { ...updateState.shapes[action.shapeId] }
+
+            updateSelectedShape.isSelected = false;
+            updateShape.isSelected = true;
+
+            updateState.shapes[selectedShape] = updateSelectedShape;
+            updateState.shapes[action.shapeId] = updateShape;
+            return updateState;
+
+        case DESELECT_SHAPE:
+            updateState = { ...state };
+            updateShape = { ...updateState.shapes[action.shapeId] }
+            
+            if (!updateShape.isSelected) {
+                return state;
+            }
+
+            updateShape.isSelected = false;
+
+            updateState.shapes[action.shapeId] = updateShape;
+            return updateState;
+
+
         case FILL_SHAPE:
             updateState = { ...state };
-            const updateShape = { ...updateState.shapes[action.shapeId] }
+            updateShape = { ...updateState.shapes[action.shapeId] }
             updateShape.fillColor = action.shapeConfig.fillColor;
 
             updateState.shapes[action.shapeId] = updateShape;

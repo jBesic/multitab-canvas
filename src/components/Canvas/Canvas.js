@@ -1,9 +1,13 @@
 import React from 'react';
 import { connect } from 'react-redux';
 
-import { createPoint } from '../../actions/actionCreators';
+import { createPoint, selectShape, deselectShape } from '../../actions/actionCreators';
 
 function canvasClickHandler(ev, props) {
+    if (ev.target.tagName.toLowerCase() === 'polyline') {
+        return true;
+    }
+
     const svgCoordinates = {
         x: ev.currentTarget.getBoundingClientRect().left,
         y: ev.currentTarget.getBoundingClientRect().top
@@ -21,32 +25,43 @@ function canvasClickHandler(ev, props) {
     }
 
     props.createPointHandler({
-            x: pointCoordinates.x - svgCoordinates.x,
-            y: pointCoordinates.y - svgCoordinates.y
-        }, props.match.params.screen_id, circleCoordinate);
+        x: pointCoordinates.x - svgCoordinates.x,
+        y: pointCoordinates.y - svgCoordinates.y
+    }, props.match.params.screen_id, circleCoordinate);
 }
 
 function Canvas(props) {
     let pointsSvg = [];
     let shapesSvg = [];
     let key = 0;
+    let selectedShapeId = 0;
+
     for (const shapeId in props.shapes) {
         if (props.shapes.hasOwnProperty(shapeId)) {
+            let firstPointProcessed = false;
             const shape = props.shapes[shapeId];
             let pointsPolyline = [];
             shape.points.forEach(pointCoordinates => {
-                pointsPolyline.push(pointCoordinates.x + ',' + pointCoordinates.y)
-                pointsSvg.push(<circle key={key} cx={pointCoordinates.x} cy={pointCoordinates.y} r="5" fill="#F55" />);
+                pointsPolyline.push(pointCoordinates.x + ',' + pointCoordinates.y);
+                if (!firstPointProcessed && !shape.isCompleted) {
+                    pointsSvg.push(<circle key={key} cx={pointCoordinates.x} cy={pointCoordinates.y} r="5" fill="#F55" />);
+                    firstPointProcessed = !firstPointProcessed;
+                }
+
                 key = key + 1;
             });
 
-            shapesSvg.push(<polyline key={shapeId} fill={shape.fillColor} stroke="#CCC" points={pointsPolyline.join(' ')} onClick={(ev) => { console.log(ev); }} />);
+            selectedShapeId = shape.isSelected ? shapeId : selectedShapeId;
+            shapesSvg.push(<polyline key={shapeId} strokeDasharray={shape.isSelected ? '15, 15' : 'none'} fill={shape.fillColor} stroke={shape.isSelected ? '#F55' : '#CCC'} points={pointsPolyline.join(' ')} onClick={() => props.selectShapeClickHandler(shapeId)} />);
         }
     }
 
     return (
         <div className='canvas'>
-            <svg onClick={event => canvasClickHandler(event, props)} xmlns="http://www.w3.org/2000/svg">
+            <svg onClick={event => {
+                canvasClickHandler(event, props);
+                props.deselectShapeClickHandler(selectedShapeId)
+            }} xmlns="http://www.w3.org/2000/svg">
                 {shapesSvg}
                 {pointsSvg}
             </svg>
@@ -56,7 +71,9 @@ function Canvas(props) {
 
 const mapDispatchToProps = dispatch => {
     return {
-        createPointHandler: (coordinates, screen_id, circleCoordinate) => dispatch(createPoint(coordinates, screen_id, circleCoordinate))
+        createPointHandler: (coordinates, screen_id, circleCoordinate) => dispatch(createPoint(coordinates, screen_id, circleCoordinate)),
+        selectShapeClickHandler: (shapeId) => dispatch(selectShape(shapeId)),
+        deselectShapeClickHandler: (shapeId) => dispatch(deselectShape(shapeId))
     }
 }
 
