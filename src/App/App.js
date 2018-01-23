@@ -1,9 +1,16 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
 
 import ScreensPager from '../components/ScreensPager/ScreensPager';
 import Screen from '../components/Screen/Screen';
 
 class App extends Component {
+  componentWillMount() {
+    if (Object.keys(this.props.match.params).length === 0) {
+      this.props.history.push('/screen/1');
+    }
+  }
+
   render() {
     return (
       <div className='canvas-screens'>
@@ -14,4 +21,10 @@ class App extends Component {
   }
 }
 
-export default App;
+function mapStateToProps(state, props) {
+  return {
+    screens: { ...state.screens }
+  };
+}
+
+export default connect(mapStateToProps)(App);
