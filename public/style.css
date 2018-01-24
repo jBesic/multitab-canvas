@@ -200,6 +200,12 @@ body {
     float: right;
 }
 
+.undo-redo-shapes button:disabled {
+    background-color: #F99;
+    border: 2px solid #F99;
+    cursor: not-allowed;
+}
+
 @media (min-width: 768px) {
     .screens-pager:before,
     .screens-pager:after {

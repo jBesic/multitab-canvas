@@ -12,6 +12,7 @@ export default function reducer(state = [], action) {
     let updateState = null;
     let updateShapes = null;
     let updateShape = null;
+    let updateHistory = null;
 
     switch (action.type) {
         case CREATE_SCREEN:
@@ -38,6 +39,7 @@ export default function reducer(state = [], action) {
         case CREATE_POINT:
             updateState = { ...state };
             updateShapes = { ...updateState.shapes };
+            let updateLatestScreenShape = null;
 
             let latestAddedShapeId = Object.keys(updateShapes).reduce((previousShapeId, currentShapeId) => {
                 return Math.max(previousShapeId, currentShapeId);
@@ -51,6 +53,7 @@ export default function reducer(state = [], action) {
 
             latestAddedShapeId = Number.parseInt(latestAddedShapeId, 10);
             latestAddedShapeIdForActiveScreen = Number.parseInt(latestAddedShapeIdForActiveScreen, 10);
+
             const differentScreen = (function () {
                 if (latestAddedShapeId === 0) {
                     return false;
@@ -90,7 +93,8 @@ export default function reducer(state = [], action) {
 
                     updateShapes[latestAddedShapeId + 1].points.push(action.coordinates);
                 } else if (updateShapes[latestAddedShapeIdForActiveScreen] && !updateShapes[latestAddedShapeIdForActiveScreen].isCompleted) {
-                    updateShapes[latestAddedShapeIdForActiveScreen].points = [...updateShapes[latestAddedShapeIdForActiveScreen].points, action.coordinates];
+                    updateLatestScreenShape = { ...updateShapes[latestAddedShapeIdForActiveScreen] };
+                    updateLatestScreenShape.points = [...updateLatestScreenShape.points, action.coordinates];
                 } else {
                     updateShapes[latestAddedShapeId + 1] = {
                         shapeId: latestAddedShapeId + 1,
@@ -115,26 +119,33 @@ export default function reducer(state = [], action) {
 
                 updateShapes[latestAddedShapeId + 1].points.push(action.coordinates);
             } else if (firstPointOfShapeIsClicked) {
-                updateShapes[latestAddedShapeIdForActiveScreen].points = [...updateShapes[latestAddedShapeIdForActiveScreen].points, action.circleCoordinate];
+                updateLatestScreenShape = { ...updateShapes[latestAddedShapeIdForActiveScreen] };
+                updateLatestScreenShape.points = [...updateLatestScreenShape.points, action.circleCoordinate];
             } else {
-                updateShapes[latestAddedShapeIdForActiveScreen].points = [...updateShapes[latestAddedShapeIdForActiveScreen].points, action.coordinates];
+                updateLatestScreenShape = { ...updateShapes[latestAddedShapeIdForActiveScreen] };
+                updateLatestScreenShape.points = [...updateLatestScreenShape.points, action.coordinates];
             }
 
             if (firstPointOfShapeIsClicked) {
-                updateShapes[latestAddedShapeIdForActiveScreen].fillColor = '#CCCCCC';
-                updateShapes[latestAddedShapeIdForActiveScreen].isCompleted = true;
+                updateLatestScreenShape.fillColor = '#CCCCCC';
+                updateLatestScreenShape.isCompleted = true;
             }
 
+            if (updateLatestScreenShape !== null) {
+                updateShapes[latestAddedShapeIdForActiveScreen] = updateLatestScreenShape;
+            }
             updateState.shapes = updateShapes;
             updateState.history = {
                 ...state.history,
-                shapesState: [...state.history.shapesState, state.shapes]
+                shapesState: [...state.history.shapesState, state.shapes],
+                indexInHistory: Object.keys(updateState.history.shapesState).length + 1
             };
 
             return updateState;
 
         case SELECT_SHAPE:
             updateState = { ...state };
+            updateShapes = { ...updateState.shapes };
 
             const selectedShape = Object.keys(updateState.shapes).filter(shapeId => {
                 return updateState.shapes[shapeId].isSelected;
@@ -145,20 +156,22 @@ export default function reducer(state = [], action) {
             }
 
             if (selectedShape.length > 0) {
-                const updateSelectedShape = { ...updateState.shapes[selectedShape[0]] };
+                const updateSelectedShape = { ...updateShapes[selectedShape[0]] };
                 updateSelectedShape.isSelected = false;
-                updateState.shapes[selectedShape[0]] = updateSelectedShape;
+                updateShapes[selectedShape[0]] = updateSelectedShape;
             }
 
-            updateShape = { ...updateState.shapes[action.shapeId] }
+            updateShape = { ...updateShapes[action.shapeId] }
             updateShape.isSelected = true;
 
-            updateState.shapes[action.shapeId] = updateShape;
+            updateShapes[action.shapeId] = updateShape;
+            updateState.shapes = updateShapes;
             return updateState;
 
         case DESELECT_SHAPE:
             updateState = { ...state };
-            updateShape = { ...updateState.shapes[action.shapeId] }
+            updateShapes = { ...updateState.shapes };
+            updateShape = { ...updateShapes[action.shapeId] }
 
             if (!updateShape.isSelected) {
                 return state;
@@ -166,29 +179,62 @@ export default function reducer(state = [], action) {
 
             updateShape.isSelected = false;
 
-            updateState.shapes[action.shapeId] = updateShape;
+            updateShapes[action.shapeId] = updateShape;
+            updateState.shapes = updateShapes;
             return updateState;
 
 
         case FILL_SHAPE:
             updateState = { ...state };
-            updateShape = { ...updateState.shapes[action.shapeId] }
+            updateShapes = { ...state.shapes };
+            updateShape = { ...updateShapes[action.shapeId] }
             updateShape.fillColor = action.shapeConfig.fillColor;
 
-            updateState.shapes[action.shapeId] = updateShape;
+            updateShapes[action.shapeId] = updateShape;
+            updateState.shapes = updateShapes;
             updateState.history = {
                 ...state.history,
-                shapesState: [...state.history.shapesState, state.shapes]
+                shapesState: [...state.history.shapesState, state.shapes],
+                indexInHistory: Object.keys(updateState.history.shapesState).length + 1
             };
             return updateState;
 
         case UNDO_SHAPES:
-        console.log(UNDO_SHAPES);
-            break;
+            updateState = { ...state };
+            updateShapes = { ...state.shapes };
+            updateHistory = { ...updateState.history };
+
+            if (updateHistory.indexInHistory === 0) {
+                return state;
+            }
+
+            if (updateHistory.indexInHistory === Object.keys(updateHistory.shapesState).length) {
+                updateHistory = {
+                    ...state.history,
+                    shapesState: [...state.history.shapesState, state.shapes]
+                };
+            }
+
+            updateHistory.indexInHistory = updateHistory.indexInHistory - 1;
+            updateShapes = { ...updateHistory.shapesState[updateHistory.indexInHistory] };
+            updateState.shapes = updateShapes;
+            updateState.history = updateHistory;
+            return updateState;
 
         case REDO_SHAPES:
-        console.log(REDO_SHAPES);
-            break;
+            updateState = { ...state };
+            updateShapes = { ...state.shapes };
+            updateHistory = { ...updateState.history };
+
+            if (updateHistory.indexInHistory === Object.keys(updateHistory.shapesState).length - 1) {
+                return state;
+            }
+
+            updateHistory.indexInHistory = updateHistory.indexInHistory + 1;
+            updateShapes = { ...updateHistory.shapesState[updateHistory.indexInHistory] };
+            updateState.shapes = updateShapes;
+            updateState.history = updateHistory;
+            return updateState;
 
         default:
             return state;

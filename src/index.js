@@ -3,11 +3,12 @@ import ReactDOM from 'react-dom';
 import { createStore } from 'redux';
 import { Provider } from 'react-redux';
 import { BrowserRouter, Route } from 'react-router-dom';
+import freezeState from 'redux-freeze-state';
 
 import App from './App/App';
 import reducer from './reducers/reducer';
 
-let store = createStore(reducer, {
+let store = createStore(freezeState(reducer), {
     screens: {
         1: {
             screenId: 1,
