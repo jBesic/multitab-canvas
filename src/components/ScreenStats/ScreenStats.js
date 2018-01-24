@@ -6,7 +6,7 @@ function ScreenStats(props) {
     let numberOfShapes = 0;
     let numberOfColors = {};
     Object.keys(props.shapes).forEach(shapeId => {
-        if (props.shapes[shapeId].isCompleted) {
+        if (props.shapes[shapeId].isCompleted && !props.shapes[shapeId].isDeleted) {
             numberOfShapes = numberOfShapes + 1;
 
             if (!numberOfColors.hasOwnProperty(props.shapes[shapeId].fillColor)) {

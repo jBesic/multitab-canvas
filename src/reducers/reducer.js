@@ -5,7 +5,8 @@ import {
     SELECT_SHAPE,
     DESELECT_SHAPE,
     UNDO_SHAPES,
-    REDO_SHAPES
+    REDO_SHAPES,
+    REMOVE_SHAPE
 } from '../actions/actions';
 
 export default function reducer(state = [], action) {
@@ -76,6 +77,7 @@ export default function reducer(state = [], action) {
                     points: [],
                     isCompleted: false,
                     isSelected: false,
+                    isDeleted: false,
                     fillColor: 'none'
                 };
 
@@ -88,6 +90,7 @@ export default function reducer(state = [], action) {
                         points: [],
                         isCompleted: false,
                         isSelected: false,
+                        isDeleted: false,
                         fillColor: 'none'
                     };
 
@@ -102,6 +105,7 @@ export default function reducer(state = [], action) {
                         points: [],
                         isCompleted: false,
                         isSelected: false,
+                        isDeleted: false,
                         fillColor: 'none'
                     };
 
@@ -114,6 +118,7 @@ export default function reducer(state = [], action) {
                     points: [],
                     isCompleted: false,
                     isSelected: false,
+                    isDeleted: false,
                     fillColor: 'none'
                 };
 
@@ -186,9 +191,24 @@ export default function reducer(state = [], action) {
 
         case FILL_SHAPE:
             updateState = { ...state };
-            updateShapes = { ...state.shapes };
+            updateShapes = { ...updateState.shapes };
             updateShape = { ...updateShapes[action.shapeId] }
             updateShape.fillColor = action.shapeConfig.fillColor;
+
+            updateShapes[action.shapeId] = updateShape;
+            updateState.shapes = updateShapes;
+            updateState.history = {
+                ...state.history,
+                shapesState: [...state.history.shapesState, state.shapes],
+                indexInHistory: Object.keys(updateState.history.shapesState).length + 1
+            };
+            return updateState;
+
+        case REMOVE_SHAPE:
+            updateState = { ...state };
+            updateShapes = { ...updateState.shapes };
+            updateShape = { ...updateShapes[action.shapeId] }
+            updateShape.isDeleted = true;
 
             updateShapes[action.shapeId] = updateShape;
             updateState.shapes = updateShapes;

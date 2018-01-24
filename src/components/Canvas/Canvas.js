@@ -37,7 +37,7 @@ function Canvas(props) {
     let selectedShapeId = 0;
 
     for (const shapeId in props.shapes) {
-        if (props.shapes.hasOwnProperty(shapeId)) {
+        if (props.shapes.hasOwnProperty(shapeId) && !props.shapes[shapeId].isDeleted) {
             let firstPointProcessed = false;
             const shape = props.shapes[shapeId];
             let pointsPolyline = [];

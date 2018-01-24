@@ -5,7 +5,8 @@ import {
     SELECT_SHAPE,
     DESELECT_SHAPE,
     UNDO_SHAPES,
-    REDO_SHAPES
+    REDO_SHAPES,
+    REMOVE_SHAPE
 } from './actions';
 
 export function createScreen() {
@@ -43,6 +44,13 @@ export function selectShape(shapeId) {
 export function deselectShape(shapeId) {
     return {
         type: DESELECT_SHAPE,
+        shapeId
+    }
+}
+
+export function removeShape(shapeId) {
+    return {
+        type: REMOVE_SHAPE,
         shapeId
     }
 }

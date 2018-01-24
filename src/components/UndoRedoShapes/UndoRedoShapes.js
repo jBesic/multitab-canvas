@@ -14,7 +14,6 @@ function UndoRedoShapes(props) {
 
 // props.history.indexInHistory < Object.keys(props.history.shapesState).length - 1 ? true : false
 function canUndo(history) {
-    console.log(history.indexInHistory);
     if (history.indexInHistory !== null && history.indexInHistory !== 0) {
         return true;
     }
