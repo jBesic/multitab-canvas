@@ -6,9 +6,7 @@ import Screen from '../components/Screen/Screen';
 
 class App extends Component {
   componentWillMount() {
-    if (Object.keys(this.props.match.params).length === 0) {
-      this.props.history.push('/screen/1');
-    }
+    this.props.history.push('/screen/1');
   }
 
   render() {
