@@ -15,7 +15,10 @@ let store = createStore(reducer, {
         }
     },
     shapes: {},
-    colors: {}
+    history: {
+        indexInHistory: null,
+        shapesState: []
+    }
 }, window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__());
 
 ReactDOM.render((

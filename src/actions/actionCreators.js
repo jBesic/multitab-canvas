@@ -3,7 +3,9 @@ import {
     CREATE_POINT,
     FILL_SHAPE,
     SELECT_SHAPE,
-    DESELECT_SHAPE
+    DESELECT_SHAPE,
+    UNDO_SHAPES,
+    REDO_SHAPES
 } from './actions';
 
 export function createScreen() {
@@ -43,4 +45,16 @@ export function deselectShape(shapeId) {
         type: DESELECT_SHAPE,
         shapeId
     }
+}
+
+export function undoShapesState() {
+    return {
+        type: UNDO_SHAPES
+    }    
+}
+
+export function redoShapesState() {
+    return {
+        type: REDO_SHAPES
+    }   
 }

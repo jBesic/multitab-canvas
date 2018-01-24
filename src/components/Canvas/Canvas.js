@@ -59,8 +59,10 @@ function Canvas(props) {
     return (
         <div className='canvas'>
             <svg onClick={event => {
+                if (selectedShapeId > 0) {
+                    props.deselectShapeClickHandler(selectedShapeId)
+                }
                 canvasClickHandler(event, props);
-                props.deselectShapeClickHandler(selectedShapeId)
             }} xmlns="http://www.w3.org/2000/svg">
                 {shapesSvg}
                 {pointsSvg}

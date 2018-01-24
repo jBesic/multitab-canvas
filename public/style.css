@@ -4,6 +4,8 @@
 
 html,
 body {
+    font-family: 'Lato', sans-serif;
+    font-size: 16px;
     height: 100%;
     margin: 0;
     padding: 0;
@@ -97,8 +99,12 @@ body {
     margin-bottom: 15px;
 }
 
+.shape-config-wrapper {
+    vertical-align: middle;
+}
+
 .shape-config-wrapper + .shape-config-wrapper {
-    margin-top: 15px;
+    margin-top: 5px;
 }
 
 .shape-config-wrapper.active {
@@ -107,45 +113,91 @@ body {
 }
 
 .shape-config-wrapper label {
-    display: block;
-    width: 100%;
-    margin-bottom: 5px;
+    display: inline-block;
+    position: relative;
+    top: 8px;
+    vertical-align: top;
+}
+
+.pick-fill-color-placeholder {
+    border-radius: 30px;
+    color: #FFF;
+    display: inline-block;
+    height: 30px;
+    line-height: 30px;
+    margin-right: 10px;
+    overflow: hidden;
+    position: relative;
+    text-align: center;
+    width: 30px;
 }
 
 .shape-config-wrapper input {
     cursor: pointer;
     display: block;
-    max-width: 100px;
-    height: 40px;
-    width: 100%;
+    height: 50px;
+    left: 50%;
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.screen-stats {
+    margin: 30px 0;
+}
+
+.screen-stats label {
+    clear: both;
+    display: inline-block;
+}
+
+.screen-stats .number-placeholder {
+    background-color: #F55;
+    border-radius: 30px;
+    color: #FFF;
+    display: inline-block;
+    height: 30px;
+    line-height: 30px;
+    margin-right: 10px;
+    text-align: center;
+    width: 30px;
+}
+
+.screen-stats .number-of-shapes {
+    vertical-align: middle;
 }
 
 .screen-stats .used-colors {
-    margin-top: 15px;
+    margin-top: 30px;
+    vertical-align: middle;
 }
 
-.screen-stats .used-colors:before,
-.screen-stats .used-colors:after {
+.color-count + .color-count {
+    margin-top: 5px;
+}
+
+.undo-redo-shapes:before,
+.undo-redo-shapes:after {
     content: ' ';
     clear: both;
     display: table;
     width: 100%;
 }
 
-.used-colors label {
-    clear: both;
+.undo-redo-shapes button {
+    background-color: #F55;
+    border: 2px solid #F55;
+    color: #FFF;
+    cursor: pointer;
     display: block;
-    width: 100%;
+    float: left;
+    outline: 0;
+    padding: 15px 30px;
+    width: calc(50% - 10px);    
 }
 
-.used-colors .used-color-box {
-    color: #FFF;
-    float: left;
-    height: 40px;
-    line-height: 40px;
-    margin-top: 15px;
-    text-align: center;
-    width: 40px;
+.undo-redo-shapes .redo {
+    float: right;
 }
 
 @media (min-width: 768px) {
@@ -173,13 +225,13 @@ body {
     }
 
     .screen-stats {
-        float: left;
-        width: 50%;
-        margin-bottom: 15px;
+        float: right;
+        margin: 0 0 15px 0;
+        width: calc(50% - 10px);
     }
 
     .screen-config {
         float: left;
-        width: 50%;
+        width: calc(50% - 10px);
     }
 }

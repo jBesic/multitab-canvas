@@ -3,7 +3,9 @@ import {
     CREATE_POINT,
     FILL_SHAPE,
     SELECT_SHAPE,
-    DESELECT_SHAPE
+    DESELECT_SHAPE,
+    UNDO_SHAPES,
+    REDO_SHAPES
 } from '../actions/actions';
 
 export default function reducer(state = [], action) {
@@ -88,7 +90,7 @@ export default function reducer(state = [], action) {
 
                     updateShapes[latestAddedShapeId + 1].points.push(action.coordinates);
                 } else if (updateShapes[latestAddedShapeIdForActiveScreen] && !updateShapes[latestAddedShapeIdForActiveScreen].isCompleted) {
-                    updateShapes[latestAddedShapeIdForActiveScreen].points.push(action.coordinates);
+                    updateShapes[latestAddedShapeIdForActiveScreen].points = [...updateShapes[latestAddedShapeIdForActiveScreen].points, action.coordinates];
                 } else {
                     updateShapes[latestAddedShapeId + 1] = {
                         shapeId: latestAddedShapeId + 1,
@@ -113,9 +115,9 @@ export default function reducer(state = [], action) {
 
                 updateShapes[latestAddedShapeId + 1].points.push(action.coordinates);
             } else if (firstPointOfShapeIsClicked) {
-                updateShapes[latestAddedShapeIdForActiveScreen].points.push(action.circleCoordinate);
+                updateShapes[latestAddedShapeIdForActiveScreen].points = [...updateShapes[latestAddedShapeIdForActiveScreen].points, action.circleCoordinate];
             } else {
-                updateShapes[latestAddedShapeIdForActiveScreen].points.push(action.coordinates);
+                updateShapes[latestAddedShapeIdForActiveScreen].points = [...updateShapes[latestAddedShapeIdForActiveScreen].points, action.coordinates];
             }
 
             if (firstPointOfShapeIsClicked) {
@@ -124,6 +126,11 @@ export default function reducer(state = [], action) {
             }
 
             updateState.shapes = updateShapes;
+            updateState.history = {
+                ...state.history,
+                shapesState: [...state.history.shapesState, state.shapes]
+            };
+
             return updateState;
 
         case SELECT_SHAPE:
@@ -137,20 +144,22 @@ export default function reducer(state = [], action) {
                 return state;
             }
 
-            const updateSelectedShape = { ...updateState.shapes[selectedShape] }
-            updateShape = { ...updateState.shapes[action.shapeId] }
+            if (selectedShape.length > 0) {
+                const updateSelectedShape = { ...updateState.shapes[selectedShape[0]] };
+                updateSelectedShape.isSelected = false;
+                updateState.shapes[selectedShape[0]] = updateSelectedShape;
+            }
 
-            updateSelectedShape.isSelected = false;
+            updateShape = { ...updateState.shapes[action.shapeId] }
             updateShape.isSelected = true;
 
-            updateState.shapes[selectedShape] = updateSelectedShape;
             updateState.shapes[action.shapeId] = updateShape;
             return updateState;
 
         case DESELECT_SHAPE:
             updateState = { ...state };
             updateShape = { ...updateState.shapes[action.shapeId] }
-            
+
             if (!updateShape.isSelected) {
                 return state;
             }
@@ -167,7 +176,19 @@ export default function reducer(state = [], action) {
             updateShape.fillColor = action.shapeConfig.fillColor;
 
             updateState.shapes[action.shapeId] = updateShape;
+            updateState.history = {
+                ...state.history,
+                shapesState: [...state.history.shapesState, state.shapes]
+            };
             return updateState;
+
+        case UNDO_SHAPES:
+        console.log(UNDO_SHAPES);
+            break;
+
+        case REDO_SHAPES:
+        console.log(REDO_SHAPES);
+            break;
 
         default:
             return state;

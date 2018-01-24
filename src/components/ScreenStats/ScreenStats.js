@@ -18,13 +18,14 @@ function ScreenStats(props) {
 
     return numberOfShapes > 0 ? (
         <div className='screen-stats'>
-            <div><label>Number of shapes:</label> {numberOfShapes}</div>
+            <div className='number-of-shapes'><span className='number-placeholder'>{numberOfShapes}</span><label>Number of closed shapes</label></div>
             <div className='used-colors'>
-                <label>Number of used colors</label>
                 {Object.keys(numberOfColors).map(color => {
                     return (
-                        <div key={color} style={{ backgroundColor: color }} className='used-color-box'>
-                            {numberOfColors[color]}
+                        <div key={color} className='color-count'>
+                            <span style={{ backgroundColor: color }} className='number-placeholder'>
+                                {numberOfColors[color]}
+                            </span><label>{color}</label>
                         </div>
                     );
                 })}
